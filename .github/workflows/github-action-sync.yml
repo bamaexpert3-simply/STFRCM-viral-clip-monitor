@@ -32,7 +32,7 @@ jobs:
 
       - name: Deploy Database Changes to Cloudflare Worker
         run: |
-          npx wrangler deploy index.html --name=stfrcm-viral-clip-monitor --compatibility-date=2026-09-23
+          npx wrangler deploy index.html --name=stfrcm-viral-clip-monitor --compatibility-date=2026-09-23 --var DATA_DIR:data
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
