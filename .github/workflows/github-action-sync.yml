@@ -26,6 +26,10 @@ jobs:
         run: |
           python scripts/fetch_clips.py
 
+      - name: Force Create Data Directory
+        run: |
+          mkdir -p data
+
       - name: Deploy Database Changes to Cloudflare Pages
         run: |
           npx wrangler pages deploy data --project-name=stfrcm
