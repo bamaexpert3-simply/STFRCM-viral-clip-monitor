@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STFRCM - Short Form Content Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #FFFFFF;
+            margin: 0;
+            padding: 20px;
+        }
+        header {
+            border-bottom: 3px solid #333333;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 32px;
+            margin: 0 0 10px 0;
+            color: #00FFCC;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        @media (min-width: 768px) {
+            .container {
+                flex-direction: row;
+            }
+        }
+        main {
+            flex: 3;
+        }
+        aside {
+            flex: 1;
+            background-color: #1A1A1A;
+            border: 2px solid #333333;
+            padding: 15px;
+        }
+        .trends-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #FFCC00;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #333333;
+            padding-bottom: 5px;
+        }
+        .trend-item {
+            font-size: 18px;
+            padding: 8px 0;
+            border-bottom: 1px solid #222222;
+        }
+        .trend-vol {
+            font-size: 14px;
+            color: #AAAAAA;
+        }
+        .filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .filter-btn {
+            background-color: #222222;
+            color: #FFFFFF;
+            border: 2px solid #444444;
+            padding: 10px 16px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .filter-btn.active, .filter-btn:hover {
+            background-color: #00FFCC;
+            color: #000000;
+            border-color: #00FFCC;
+        }
+        .clip-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .clip-card {
+            background-color: #1A1A1A;
+            border: 2px solid #333333;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .clip-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0;
+            line-height: 1.4;
+        }
+        .clip-title a {
+            color: #FFFFFF;
+            text-decoration: none;
+        }
+        .clip-title a:hover {
+            color: #00FFCC;
+            text-decoration: underline;
+        }
+        .clip-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 16px;
+        }
+        .badge {
+            background-color: #333333;
+            color: #FFFFFF;
+            padding: 4px 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .badge.viral {
+            background-color: #FF3366;
+            color: #FFFFFF;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>STFRCM.org — Short Form Content Manager</h1>
+        <div id="update-time" style="font-size: 16px; color: #AAAAAA;">Updating baseline tracker status...</div>
+    </header>
+
+    <div class="container">
+        <main>
+            <div class="filter-container" id="categories-root">
+                <button class="filter-btn active" onclick="filterCategory('ALL')">ALL FEED</button>
+            </div>
+            
+            <div class="clip-list" id="clips-root">
+                <div style="font-size: 20px; padding: 20px;">Refreshing live asset matrix...</div>
+            </div>
+        </main>
+
+        <aside>
+            <div class="trends-title">US Google Search Trends</div>
+            <div id="trends-root" style="font-size: 16px; color: #AAAAAA;">Updating trends...</div>
+        </aside>
+    </div>
+
+    <script>
+        // Baseline fallback mock data array matching your categories
+        const mockData = {
+            "last_updated": new Date().toISOString().replace('T', ' ').substring(0, 19),
+            "total_clips": 5,
+            "trends": [
+                {"topic": "NFL Highlights", "volume": "1M+"},
+                {"topic": "Trending Funny Clips", "volume": "500K+"},
+                {"topic": "WNBA Postseason", "volume": "200K+"}
+            ],
+            "clips": [
+                {"title": "Colts vs. Chiefs Game Highlights | NFL Live", "url": "https://youtube.com", "category": "NFL", "score": 96, "timestamp": "Today"},
+                {"title": "GOP Senators Call For Investigation Over White House News Incident", "url": "https://cnn.com", "category": "CNN", "score": 93, "timestamp": "Today"},
+                {"title": "Lynx vs. Fever Highlights | Dramatic WNBA Finish", "url": "https://youtube.com", "category": "WNBA", "score": 91, "timestamp": "Today"},
+                {"title": "Giants vs. Dodgers MLB highlights | Major Inning Recaps", "url": "https://youtube.com", "category": "MLB", "score": 90, "timestamp": "Today"},
+                {"title": "Funny Animals compilation: Retriever puppy steals the show", "url": "https://reddit.com", "category": "Furry Animals", "score": 88, "timestamp": "Today"}
+            ]
+        };
+
+        const allClips = mockData.clips;
+
+        function loadDashboard() {
+            document.getElementById('update-time').innerText = `Database Daily Sync Complete: ${mockData.last_updated} UTC | Ingested Assets: ${mockData.total_clips}`;
+            renderCategories(allClips);
+            renderClips(allClips);
+            renderTrends(mockData.trends);
+        }
+
+        function renderCategories(clips) {
+            const container = document.getElementById('categories-root');
+            const uniqueCategories = [...new Set(clips.map(c => c.category))];
+            
+            uniqueCategories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn';
+                btn.innerText = cat;
+                btn.onclick = () => filterCategory(cat, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function renderClips(clipsToDisplay) {
+            const container = document.getElementById('clips-root');
+            container.innerHTML = '';
+
+            clipsToDisplay.forEach(clip => {
+                const card = document.createElement('div');
+                card.className = 'clip-card';
+                card.innerHTML = `
+                    <h2 class="clip-title"><a href="${clip.url}" target="_blank">${clip.title}</a></h2>
+                    <div class="clip-meta">
+                        <span class="badge">${clip.category}</span>
+                        <span class="badge viral">Score: ${clip.score}</span>
+                        <span style="color: #AAAAAA;">${clip.timestamp}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderTrends(trends) {
+            const container = document.getElementById('trends-root');
+            container.innerHTML = '';
+            trends.forEach(t => {
+                const div = document.createElement('div');
+                div.className = 'trend-item';
+                div.innerHTML = `<div>⚡ <strong>${t.topic}</strong></div><div class="trend-vol">Traffic volume: ${t.volume}</div>`;
+                container.appendChild(div);
+            });
+        }
+
+        function filterCategory(category, targetBtn) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            if(targetBtn) {
+                targetBtn.classList.add('active');
+            } else {
+                document.getElementById('categories-root').firstElementChild.classList.add('active');
+            }
+
+            if (category === 'ALL') {
+                renderClips(allClips);
+            } else {
+                const filtered = allClips.filter(c => c.category === category);
+                renderClips(filtered);
+            }
+        }
+
+        window.onload = loadDashboard;
+    </script>
+</body>
+</html>
