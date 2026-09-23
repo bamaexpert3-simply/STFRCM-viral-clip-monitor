@@ -21,7 +21,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install requests
-          npm install -g wrangler
 
       - name: Run Ingestion Script
         run: |
@@ -29,7 +28,7 @@ jobs:
 
       - name: Deploy Database Changes to Cloudflare Pages
         run: |
-          wrangler pages deploy data --project-name=stfrcm
+          npx wrangler pages deploy data --project-name=stfrcm
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
